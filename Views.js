@@ -1,22 +1,11 @@
 let map;
-
+let server="http://localhost:8090";
 const TICK_X = 1;
 const TICK_Y = 1;
-const data = JSON.stringify({
-    booking: {
-        source:
-            {x: 51.5090562, y: -0.05},
-        destination:
-            {x: 50.5090562, y: -0.1304571},
-        booking_id: "testid",
-        vehicle_id: "vehicletest"
-    }
-});
-
 
 async function getVehicles() {
     let data={}
-    let url = "http://localhost:8090/api/status";
+    let url =server +"/api/status";
     console.log("Querying server "+url);
     let params = {
         headers: {
@@ -147,8 +136,8 @@ function findNearestVehicle(myPosition = {}, vehicles = {}) {
 }
 
 function makeBooking(source,destination) {
-    json_data = JSON.parse(data);
-    let url = "http://localhost:5678/api/available/vehicles";
+
+    let url = server+"/api/vehicles";
     let params = {
         headers: {
             "content-type": "application/json; charset=UTF-8"
@@ -160,10 +149,10 @@ function makeBooking(source,destination) {
             return data.json()
         })
         .then(res => {
-            let closest = findNearestVehicle(json_data['booking']['source'], res);
+            let closest = findNearestVehicle(source, res);
             let vehicle_id = closest['vehicle_id']
             console.log("Closest vehicle is :" + vehicle_id);
-            let url = "http://localhost:5678/api/book";
+            let url = server+"/api/book";
 
             const booking = JSON.stringify({
                 source,
@@ -197,7 +186,7 @@ function makeBooking(source,destination) {
 }
 
 function tickVehicle() {
-    let url = "http://localhost:5678/api/tick/vehicle";
+    let url = server+"/api/tick/vehicle";
     let tick = {
         tick: {x: TICK_X, y: TICK_Y}
     }

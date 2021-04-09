@@ -1,5 +1,5 @@
 let map;
-
+let server="http://localhost:8090";
 const TICK_X = 1;
 const TICK_Y = 1;
 const data = JSON.stringify({
@@ -143,7 +143,7 @@ function initMap() {
 }
 
 function createVehicles() {
-    let url = "http://localhost:5678/api/create/vehicle";
+    let url = server+"/api/create/vehicle";
     let vehicles = [
         ["mXfkjrFw", 51.5090562, -0.1304571],
         ["nZXB8ZHz", 51.5080898, -0.07620836346036469],
@@ -172,34 +172,6 @@ function createVehicles() {
 
 }
 
-async function initialize() {
-    var options = {
-        componentRestrictions: {country: 'UK'}
-    };
-    var source = document.getElementById('searchLocation');
-    var destination = document.getElementById('searchDestination');
-    const autocompleteLocation = await new google.maps.places.SearchBox(source, options);
-    const autocompleteDestination =await new google.maps.places.SearchBox(destination, options);
-    autocompleteDestination.bindTo("bounds", map);
-    autocompleteDestination.addListener("place_changed",()=>{
-        console.log("We are Listening!")
-
-        var destination = {x: going_to.geometry.location.lat(), y: going_to.geometry.location.lng()};
-        console.log(destination)
-
-    });
-    autocompleteLocation.addListener("place_changed",()=>{
-        var from = autocompleteLocation.getPlace();
-
-        var source = {x: from.geometry.location.lat(), y: from.geometry.location.lng()};
-        console.log(source)
-    });
-
-
-    return {"destination": autocompleteLocation, "source": autocompleteDestination};
-
-
-}
 
 function parameters(params, method) {
     if (method === "POST") {
@@ -246,8 +218,8 @@ function findNearestVehicle(myPosition = {}, vehicles = {}) {
 }
 
 function makeBooking(source,destination) {
-    json_data = JSON.parse(data);
-    let url = "http://localhost:5678/api/available/vehicles";
+    let json_data = JSON.parse(data);
+    let url = server+"/api/status";
     let params = {
         headers: {
             "content-type": "application/json; charset=UTF-8"
@@ -259,15 +231,16 @@ function makeBooking(source,destination) {
             return data.json()
         })
         .then(res => {
-            let closest = findNearestVehicle(json_data['booking']['source'], res);
+            returned_vehicles=res['status'];
+            let closest = findNearestVehicle(source, returned_vehicles);
             let vehicle_id = closest['vehicle_id']
             console.log("Closest vehicle is :" + vehicle_id);
-            let url = "http://localhost:5678/api/book";
+            let url = server+"/api/book";
 
             const booking = JSON.stringify({
                 source,
                 destination,
-                    booking_id: "shjgu",
+                    booking_id: null,
                     vehicle_id: vehicle_id
 
             });
@@ -280,7 +253,7 @@ function makeBooking(source,destination) {
                 .then(res => {
                     console.log("Booking Response: " + res);
                     json=JSON.parse(res);
-                    alert("You successfully booked vehicle "+json['vehicle_id']+"\n The vehicle will now be marked as unavailable");
+                    alert("You successfully booked vehicle "+json['car_id']+"\n The vehicle will now be marked as unavailable");
 
                 })
                 .catch(err => {
@@ -296,7 +269,7 @@ function makeBooking(source,destination) {
 }
 
 function tickVehicle() {
-    let url = "http://localhost:5678/api/tick/vehicle";
+    let url = server+"/api/tick";
     let tick = {
         tick: {x: TICK_X, y: TICK_Y}
     }
